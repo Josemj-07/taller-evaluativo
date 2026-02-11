@@ -1,13 +1,16 @@
-name: CI Spring Boot 4 + Java 25
+name: CI Spring Boot + Gradle
 
 on:
-  pull_request:
-    branches: ["main"]
   push:
     branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+permissions:
+  contents: write
 
 jobs:
-  build-and-release:
+  build:
     runs-on: ubuntu-latest
 
     steps:
@@ -22,21 +25,17 @@ jobs:
           cache: gradle
 
       - name: Grant execute permission to Gradle
-        run: chmod +x gradlew
+        run: chmod +x demo/gradlew
 
       - name: Build with Gradle
+        working-directory: demo
         run: ./gradlew clean build
 
-      - name: Upload JAR artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: spring-boot-app
-          path: build/libs/*.jar
-
       - name: Create GitHub Release
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: softprops/action-gh-release@v2
+        if: github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v1
         with:
           tag_name: v${{ github.run_number }}
           name: Release v${{ github.run_number }}
-          files: build/libs/*.jar
+          files: demo/build/libs/*.jar
+
